@@ -37,7 +37,7 @@ export default async function Login(req: NextApiRequest, res: NextApiResponse) {
             }
 
             // Password is correct, login successful
-            return res.status(200).json({ message: `User "${user.name}" found`,name:user.name,password:user.password});
+            return res.status(200).json({ message: "User found"});
         } catch (error) {
             await closeClient();
             console.error('Error during login:', error);
