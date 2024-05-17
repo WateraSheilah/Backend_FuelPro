@@ -12,7 +12,9 @@ type SensorReading = {
     temperature: number,
     sulfur: number,
     color: string,
-    // Other fields might exist, but are not retrieved
+    createdAt: Date,  // Date and time the reading was created
+    petrolStationName: string,  // Name of the petrol station
+    petrolStationLocation: string,  // Location of the petrol station
 };
 
 export default async function SensorReadings(req: NextApiRequest, res: NextApiResponse) {
@@ -46,7 +48,15 @@ export default async function SensorReadings(req: NextApiRequest, res: NextApiRe
             return;
         }
 
-        const projection = { temperature: 1, sulfur: 1, color: 1, _id: 0 }; // Project only the desired fields
+        const projection = {
+            temperature: 1,
+            sulfur: 1,
+            color: 1,
+            createdAt: 1,
+            petrolStationName: 1,
+            petrolStationLocation: 1,
+            _id: 0  // Exclude _id from the response
+        };
         const fuelRecordings = await readingsCollection.find(
             { _id: { $in: user.fuelRecordings }},
             { projection }
@@ -57,7 +67,7 @@ export default async function SensorReadings(req: NextApiRequest, res: NextApiRe
         } else {
             res.status(200).json({ message: 'No sensor data available for the recorded entries' });
         }
-    } catch ( error) {
+    } catch (error) {
         console.error('Error fetching sensor readings:', error);
         res.status(500).json({ error: 'Internal server error' });
     }

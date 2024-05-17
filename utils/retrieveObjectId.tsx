@@ -7,7 +7,7 @@ type User = {
     // Other fields...
 };
 
-export async function getObjectID(userId: ObjectId): Promise<ObjectId[]> {
+export async function getFuelObjectID(userId: ObjectId): Promise<ObjectId[]> {
     const db = await connectToDatabase();
     const usersCollection = db.collection<User>('users');
 

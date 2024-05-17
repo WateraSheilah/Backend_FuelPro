@@ -1,10 +1,10 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {connectToDatabase} from "@/utils/mongodb";
+import {addPetrolStation} from "@/utils/addPetrolStation";
 
 interface PetrolStation {
-    username: string;
-    petrolstationlocation: string;
-    petrolstationname: string;
+    location: string;
+    station: string;
 
 }
 
@@ -13,13 +13,15 @@ export default async function PetrolStation(req: NextApiRequest, res: NextApiRes
         try {
             const db = await connectToDatabase();
             const usersCollection = db.collection('users');
-            const collection = db.collection('readings');
+            const collection = db.collection('petrolstation');
+
+            const { username } = req.body;
+
 
             const stationData: PetrolStation = req.body;
             const {
-                username,
-                petrolstationname,
-                petrolstationlocation,
+                station,
+                location,
 
             } = stationData;
 
@@ -29,17 +31,22 @@ export default async function PetrolStation(req: NextApiRequest, res: NextApiRes
                 return res.status(404).json({ error: 'User not found' });
             }
 
+            // Validate required fields
+            if (!station || !location) {
+                return res.status(400).json({ error: 'Petrol station name and location are required' });
+            }
+
             // Insert the petrol station readings associated with the username
             const result = await collection.insertOne({
-                username,
-                petrolstationname,
-                petrolstationlocation,
-
-                // createdAt: Date.now,
+                station,
+                location,
+                createdAt: new Date(),
                 // updatedAt: Date.now,
             });
+            // Update the user's fuelRecordings array with the new recording ObjectId
+            await addPetrolStation(user._id, result.insertedId);
 
-            res.status(201).json({ message: 'Petrol Station Details inserted successfully', insertedId: result.insertedId });
+            res.status(201).json({ message: 'Petrol Station Details inserted successfully'});
 
 
         }catch (error){
