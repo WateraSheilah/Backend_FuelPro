@@ -46,7 +46,7 @@ export default async function PetrolStation(req: NextApiRequest, res: NextApiRes
             // Update the user's fuelRecordings array with the new recording ObjectId
             await addPetrolStation(user._id, result.insertedId);
 
-            res.status(201).json({ message: 'Petrol Station Details inserted successfully'});
+            res.status(200).json({ message: 'Petrol Station Details inserted successfully'});
 
 
         }catch (error){

@@ -46,7 +46,7 @@ export default async function getUserSensorReadings(req: NextApiRequest, res: Ne
         }).toArray();
 
         if (sensorReadings.length === 0) {
-            return res.status(404).json({ message: 'No sensor readings available for this user' });
+            return res.status(200).json({ message: 'No sensor readings available for this user' });
         }
 
         res.status(200).json({ sensorReadings });

@@ -51,7 +51,7 @@ export default async function Signup(req: NextApiRequest, res: NextApiResponse) 
                 fuelRecordings: []
             });
 
-            res.status(201).json({ message: 'User registered successfully'});
+            res.status(200).json({ message: 'User registered successfully'});
         } catch (error) {
             console.error('Error during signup:', error);
             res.status(500).json({ error: 'Internal server error' });

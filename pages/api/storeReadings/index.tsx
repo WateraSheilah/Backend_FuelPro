@@ -42,7 +42,7 @@ export default async function receiveFuelRecordings(req: NextApiRequest, res: Ne
             // Update the user's fuelRecordings array with the new recording ObjectId
             await addFuelRecording(user._id, result.insertedId);
 
-            res.status(201).json({ message: 'Fuel recording saved successfully'});
+            res.status(200).json({ message: 'Fuel recording saved successfully'});
         } catch (error) {
             console.error('Error saving fuel recording:', error);
             res.status(500).json({ error: 'Internal server error' });
