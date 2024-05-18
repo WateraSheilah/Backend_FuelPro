@@ -27,13 +27,13 @@ export default async function Login(req: NextApiRequest, res: NextApiResponse) {
             // Find the user by username
             const user = await collection.findOne({ username });
             if (!user) {
-                return res.status(404).json({ error: 'User not found' });
+                return res.status(404).json({ error: 'Username not found' });
             }
 
             // Validate the password
             const passwordMatch = await bcrypt.compare(password, user.password);
             if (!passwordMatch) {
-                return res.status(401).json({ error: 'Invalid credentials' });
+                return res.status(401).json({ error: 'Invalid password' });
             }
 
             // Password is correct, login successful
