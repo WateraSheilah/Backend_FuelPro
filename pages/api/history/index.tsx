@@ -17,7 +17,7 @@ type SensorReading = {
     petrolStationLocation: string,  // Location of the petrol station
 };
 
-export default async function SensorReadings(req: NextApiRequest, res: NextApiResponse) {
+export default async function History(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
         res.status(405).json({ error: 'Method Not Allowed' });
         return;
