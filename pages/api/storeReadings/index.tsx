@@ -1,10 +1,11 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { connectToDatabase } from "@/utils/mongodb";
-import { ObjectId } from 'mongodb';
-import { addFuelRecording } from "@/utils/addFuelRecording";  // Ensure this path is correct
+import { NextApiRequest, NextApiResponse } from 'next';
+import { connectToDatabase } from '@/utils/mongodb';
+import {MqttClient} from "mqtt";
+import { addFuelRecording } from '@/utils/addFuelRecording';
+import { connectToMQTTBroker } from '@/utils/connectToMQTTBroker';  // Assuming this is the correct path
 
 interface FuelRecording {
-    username: string;  // To verify the user but not store it
+    username: string;
     sulfur: number;
     color: string;
     temperature: number;
@@ -17,34 +18,41 @@ export default async function receiveFuelRecordings(req: NextApiRequest, res: Ne
             const usersCollection = db.collection('users');
             const recordingsCollection = db.collection('readings');
 
-            // Extract data from request body, ensuring username is provided for verification
             const { username, sulfur, color, temperature } = req.body as FuelRecording;
 
-            // Check if the user exists in the users collection
             const user = await usersCollection.findOne({ username });
             if (!user) {
                 return res.status(404).json({ error: 'User not found' });
             }
 
-            // Validate the data to ensure all necessary fields are present
             if (!username || sulfur === undefined || color === undefined || temperature === undefined) {
-                return res.status(400).json({ error: 'Missing required fields: username, sulfur, color, and temperature must be provided.' });
+                return res.status(400).json({ error: 'Missing required fields' });
             }
 
-            // Insert the data into the fuelRecordings collection, excluding the username
-            const result = await recordingsCollection.insertOne({
-                sulfur,
-                color,
-                temperature,
-                createdAt: new Date() // Storing the timestamp of the record
+            // Connect to MQTT Broker and subscribe to the topic
+            const mqttClient = connectToMQTTBroker();  // This should return the client
+
+            mqttClient.on('message', async (topic, message) => {
+                // Assume message is a JSON string that needs parsing
+                const msgData = JSON.parse(message.toString());
+
+                // Insert data received from MQTT into MongoDB
+                const result = await recordingsCollection.insertOne({
+                    sulfur: msgData.sulfur,
+                    color: msgData.color,
+                    temperature: msgData.temperature,
+                    createdAt: new Date()
+                });
+
+                // Update the user's fuelRecordings array with the new recording ObjectId
+                await addFuelRecording(user._id, result.insertedId);
+
+                console.log('Fuel recording saved via MQTT');
             });
 
-            // Update the user's fuelRecordings array with the new recording ObjectId
-            await addFuelRecording(user._id, result.insertedId);
-
-            res.status(200).json({ message: 'Fuel recording saved successfully'});
+            res.status(200).json({ message: 'Connected to MQTT and listening for messages' });
         } catch (error) {
-            console.error('Error saving fuel recording:', error);
+            console.error('Error handling request:', error);
             res.status(500).json({ error: 'Internal server error' });
         }
     } else {

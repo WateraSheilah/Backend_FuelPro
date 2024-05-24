@@ -26,7 +26,7 @@ export function connectToMQTTBroker() {
         client.subscribe(topic, (err: Error | null) => {
             if (!err) {
                 console.log(`Subscribed to topic '${topic}'`);
-                client.publish(topic, 'Hello MQTT', {}, (error: Error | null) => {
+                client.publish(topic, 'Hello MQTT', {}, (error) => {
                     if (error) {
                         console.error('Publish error:', error);
                     } else {
@@ -47,6 +47,7 @@ export function connectToMQTTBroker() {
     client.on('error', (err: Error) => {
         console.error('Connection to MQTT broker failed:', err);
     });
+    return client;
 }
 
 
