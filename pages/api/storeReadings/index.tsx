@@ -12,7 +12,7 @@ interface FuelRecording {
 }
 
 export default async function receiveFuelRecordings(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method === 'POST') {
+    if (req.method === 'GET') {
         try {
             const db = await connectToDatabase();
             const usersCollection = db.collection('users');

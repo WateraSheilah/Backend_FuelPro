@@ -1,53 +1,59 @@
-// utils/connectToMQTTBroker.ts
+import mqtt from 'mqtt';
 
-import mqtt, { MqttClient } from 'mqtt';
-
-// MQTT Broker settings
 const mqtt_broker = "broker.emqx.io";
 const topic = "esp32/test";
 const mqtt_username = "Anderson";
 const mqtt_password = "12345678";
 const mqtt_port = 1883;
 
-let client: MqttClient;
+// Define the type for the message data
+interface MessageData {
+    topic: string;
+    message: string;
+}
+
+// Update the latestMessage to support both MessageData or null
+export const latestMessage: { data: MessageData | null } = { data: null };
 
 export function connectToMQTTBroker() {
-    client = mqtt.connect(`mqtt://${mqtt_broker}:${mqtt_port}`, {
+    const client = mqtt.connect(`mqtt://${mqtt_broker}:${mqtt_port}`, {
         clientId: "mqttjs01",
         username: mqtt_username,
         password: mqtt_password,
-        clean: true, // Ensures the client starts with a clean session (recommended)
-        reconnectPeriod: 1000, // Reconnect interval in milliseconds
-        connectTimeout: 4000 // Time out period in milliseconds
+        clean: true,
+        reconnectPeriod: 1000,
+        connectTimeout: 4000
     });
+    try{
+        client.on('connect', () => {
+            console.log('Connected to MQTT Broker');
+            client.subscribe(topic, (err) => {
+                if (!err) {
+                    console.log(`Subscribed to topic '${topic}'`);
+                } else {
+                    console.error('Subscribe error:', err);
+                }
+            });
+        });}catch (e) {
+        console.log( 'There was a problem connecting to the broker error:'+e);
 
-    client.on('connect', () => {
-        console.log('Connected to MQTT Broker');
-        client.subscribe(topic, (err: Error | null) => {
-            if (!err) {
-                console.log(`Subscribed to topic '${topic}'`);
-                client.publish(topic, 'Hello MQTT', {}, (error) => {
-                    if (error) {
-                        console.error('Publish error:', error);
-                    } else {
-                        console.log('Message published to topic');
-                    }
-                });
-            } else {
-                console.error('Subscribe error:', err);
-            }
+    }
+
+    try {
+
+
+        client.on('message', (topic, message) => {
+            console.log(`Received message on topic: ${topic}`);
+            // Correctly assigning to data
+            latestMessage.data = { topic, message: message.toString() };
         });
-    });
 
-    client.on('message', (topic: string, message: Buffer | string) => {
-        // Assuming message is converted to string for logging
-        console.log(`Received message: ${message.toString()} on topic: ${topic}`);
-    });
+        client.on('error', (err) => {
+            console.error('Connection to MQTT broker failed:', err);
+        });}catch (e) {
+        console.log('Couldnt get any data error :'+e);
 
-    client.on('error', (err: Error) => {
-        console.error('Connection to MQTT broker failed:', err);
-    });
+    }
+
     return client;
 }
-
-
