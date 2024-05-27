@@ -1,9 +1,6 @@
-// pages/api/auth/signup.ts
-
 import { NextApiRequest, NextApiResponse } from 'next';
-import bcrypt from 'bcrypt';
 import { connectToDatabase } from "@/utils/mongodb";
-
+import {hashpassword, validatePassword} from "@/utils/password";
 
 interface SignupData {
     username: string;
@@ -40,15 +37,17 @@ export default async function Signup(req: NextApiRequest, res: NextApiResponse) 
             }
 
             // Hash the password
-            const hashedPassword = await bcrypt.hash(password, 10);
+            const hashedPassword = await hashpassword(password);
 
-            // Insert the user data into the MongoDB collection with hashed password
+            // Insert the user data into the users collection
             const result = await usersCollection.insertOne({
                 username,
                 password: hashedPassword,
                 phoneNumber,
+                // userToken,
                 petrolStations: [],
                 fuelRecordings: []
+
             });
 
             res.status(200).json({ message: 'User registered successfully'});

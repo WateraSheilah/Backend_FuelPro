@@ -6,7 +6,6 @@ const mqtt_username = "Anderson";
 const mqtt_password = "12345678";
 const mqtt_port = 1883;
 
-// Define the type for the message data
 interface MessageData {
     topic: string;
     message: string;

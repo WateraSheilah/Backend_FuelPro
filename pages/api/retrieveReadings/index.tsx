@@ -28,7 +28,7 @@ export default async function getUserSensorReadings(req: NextApiRequest, res: Ne
         return res.status(400).json({ error: 'Username is required' });
     }
 
-    try {
+    try {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
         const db = await connectToDatabase();
         const usersCollection = db.collection<User>('users');
         const readingsCollection = db.collection<SensorReading>('readings');
