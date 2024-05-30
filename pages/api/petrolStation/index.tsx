@@ -6,6 +6,7 @@ interface PetrolStation {
     location: string;
     station: string;
 
+
 }
 
 export default async function PetrolStation(req: NextApiRequest, res: NextApiResponse){
@@ -40,13 +41,14 @@ export default async function PetrolStation(req: NextApiRequest, res: NextApiRes
             const result = await collection.insertOne({
                 station,
                 location,
+                userId: user._id,
                 createdAt: new Date(),
                 // updatedAt: Date.now,
             });
             // Update the user's fuelRecordings array with the new recording ObjectId
             await addPetrolStation(user._id, result.insertedId);
 
-            res.status(200).json({ message: 'Petrol Station Details inserted successfully'});
+            res.status(200).json({ message: 'Petrol Station Details inserted successfully', stationId: result.insertedId});
 
 
         }catch (error){

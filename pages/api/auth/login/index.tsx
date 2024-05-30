@@ -34,7 +34,8 @@ export default async function Login(req: NextApiRequest, res: NextApiResponse) {
             }
 
             // Password is correct, login successful
-            return res.status(200).json({ message: "logged_in",id:user._id,username:user.username,});
+            return res.status(200).json({ message: "logged_in",_id:user._id,username:user.username,
+            });
         } catch (error) {
             console.error('Error during login:', error);
             return res.status(500).json({ error: 'Internal server error' });

@@ -26,7 +26,7 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
     const { username } = req.body;
 
     if (!username) {
-        res.status(400).json({ error: 'Username is required' });
+        res.status(400).json({ error: 'Username isnt logged in' });
         return;
     }
 
