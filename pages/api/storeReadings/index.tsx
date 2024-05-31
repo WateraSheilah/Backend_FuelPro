@@ -41,6 +41,7 @@ export default async function receiveFuelRecordings(req: NextApiRequest, res: Ne
                     sulfur: msgData.sulfur,
                     color: msgData.color,
                     temperature: msgData.temperature,
+
                     createdAt: new Date()
                 });
 

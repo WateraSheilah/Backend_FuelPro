@@ -1,13 +1,12 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {connectToDatabase} from "@/utils/mongodb";
 import {addPetrolStation} from "@/utils/addPetrolStation";
+import {ObjectId} from "mongodb";
 
 interface PetrolStation {
+    userId: ObjectId;
     location: string;
-    station: string;
-
-
-}
+    station: string;}
 
 export default async function PetrolStation(req: NextApiRequest, res: NextApiResponse){
     if(req.method === "POST"){
@@ -17,7 +16,6 @@ export default async function PetrolStation(req: NextApiRequest, res: NextApiRes
             const collection = db.collection('petrolstation');
 
             const { username } = req.body;
-
 
             const stationData: PetrolStation = req.body;
             const {
@@ -41,9 +39,8 @@ export default async function PetrolStation(req: NextApiRequest, res: NextApiRes
             const result = await collection.insertOne({
                 station,
                 location,
-                userId: user._id,
+                userId: new ObjectId(user._id),
                 createdAt: new Date(),
-                // updatedAt: Date.now,
             });
             // Update the user's fuelRecordings array with the new recording ObjectId
             await addPetrolStation(user._id, result.insertedId);
