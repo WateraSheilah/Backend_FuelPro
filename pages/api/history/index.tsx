@@ -53,9 +53,8 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
             sulfur: 1,
             color: 1,
             createdAt: 1,
-            petrolStationName: 1,
-            petrolStationLocation: 1,
-            _id: 0  // Exclude _id from the response
+            stationId: 1,
+            _id: 0
         };
         const fuelRecordings = await readingsCollection.find(
             { _id: { $in: user.fuelRecordings }},

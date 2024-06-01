@@ -6,7 +6,9 @@ import {ObjectId} from "mongodb";
 interface PetrolStation {
     userId: ObjectId;
     location: string;
-    station: string;}
+    command:string;
+    station: string;
+}
 
 export default async function PetrolStation(req: NextApiRequest, res: NextApiResponse){
     if(req.method === "POST"){
@@ -21,6 +23,7 @@ export default async function PetrolStation(req: NextApiRequest, res: NextApiRes
             const {
                 station,
                 location,
+                command,
 
             } = stationData;
 

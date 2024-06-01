@@ -19,10 +19,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const { username } = req.body;
+    const { readingId } = req.body;
     // console.log("Received username:", username);
 
-    if (!username) {
+    if (!readingId) {
         return res.status(400).json({ error: 'Username query parameter is required' });
 
     }
@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const readingsCollection = db.collection<Reading>('readings');
 
         // Find the user by username
-        const user = await usersCollection.findOne({ username });
+        const user = await usersCollection.findOne({ readingId });
 
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
