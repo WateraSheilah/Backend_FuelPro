@@ -1,8 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import {connectToMQTTBroker, latestMessage} from "@/utils/connectToMQTTBroker";
+import { connectToMQTTBroker, latestMessage } from "@/utils/connectToMQTTBroker";
+
+connectToMQTTBroker();  // Establish the MQTT connection once
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-    connectToMQTTBroker();
     if (req.method === 'GET') {
         if (latestMessage.data) {
             res.status(200).json(latestMessage.data);

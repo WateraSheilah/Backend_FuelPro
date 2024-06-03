@@ -3,28 +3,27 @@ import { connectToDatabase } from '@/utils/mongodb';
 import { ObjectId } from 'mongodb';
 
 type User = {
-    _id: ObjectId,
-    fuelRecordings: ObjectId[],
-    // Other fields...
+    _id: ObjectId;
+    username: string;
+    fuelRecordings: ObjectId[];
 };
 
 type SensorReading = {
-    temperature: number,
-    sulfur: number,
-    color: string,
-    createdAt: Date,  // Date and time the reading was created
-    stationId: ObjectId,  // ID of the petrol station
+    temperature: number;
+    sulfur: number;
+    color: string;
+    createdAt: Date;
+    stationId: ObjectId;
 };
 
-type PetrolStationDetails = {
-    _id: ObjectId,
-    petrolStationName: string,
-    petrolStationLocation: string,
-    // Other fields...
+type PetrolStation = {
+    _id: ObjectId;
+    station: string;
+    location: string;
 };
 
 export default async function History(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'POST') {
+    if (req.method !== 'GET') {
         res.status(405).json({ error: 'Method Not Allowed' });
         return;
     }
@@ -39,6 +38,8 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
     try {
         const db = await connectToDatabase();
         const usersCollection = db.collection<User>('users');
+        const readingsCollection = db.collection<SensorReading>('readings');
+        const petrolStationsCollection = db.collection<PetrolStation>('petrolstation');
 
         const user = await usersCollection.findOne({ username }, { projection: { _id: 1, fuelRecordings: 1 } });
 
@@ -52,48 +53,48 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
             return;
         }
 
-        console.log('User found:', user);
+        const projection = {
+            temperature: 1,
+            sulfur: 1,
+            color: 1,
+            createdAt: 1,
+            stationId: 1,
+            _id: 0
+        };
 
-        const readingsCollection = db.collection<SensorReading>('readings');
-
-        // Convert fuelRecording IDs to ObjectId
-        const fuelRecordingIds = user.fuelRecordings.map(id => new ObjectId(id.toString()));
-
-        console.log('Fuel recording IDs:', fuelRecordingIds);
-
-        // Retrieve sensor readings
-        const sensorReadings = await readingsCollection.find(
-            { _id: { $in: fuelRecordingIds } }
+        const fuelRecordings = await readingsCollection.find(
+            { _id: { $in: user.fuelRecordings } },
+            { projection }
         ).toArray();
 
-        console.log('Sensor readings retrieved:', sensorReadings);
+        if (fuelRecordings.length > 0) {
+            const stationIds = fuelRecordings.map(reading => reading.stationId);
+            const petrolStations = await petrolStationsCollection.find(
+                { _id: { $in: stationIds } },
+                { projection: { station: 1, location: 1 } }
+            ).toArray();
 
-        if (sensorReadings.length === 0) {
+            const stationMap = petrolStations.reduce((map, station) => {
+                map[station._id.toString()] = {
+                    station: station.station,
+                    location: station.location,
+                };
+                return map;
+            }, {} as { [key: string]: { station: string; location: string } });
+
+            const readingsWithStationDetails = fuelRecordings.map(reading => ({
+                createdAt: reading.createdAt,
+                station: stationMap[reading.stationId.toString()]?.station || 'Unknown',
+                location: stationMap[reading.stationId.toString()]?.location || 'Unknown',
+                temperature: reading.temperature,
+                sulfur: reading.sulfur,
+                color: reading.color
+            }));
+
+            res.status(200).json({ sensorReadings: readingsWithStationDetails });
+        } else {
             res.status(200).json({ message: 'No sensor data available for the recorded entries' });
-            return;
         }
-
-        // Retrieve petrol station details
-        const stationIds = sensorReadings.map(reading => reading.stationId);
-        const petrolStationsCollection = db.collection<PetrolStationDetails>('petrolStations');
-        const petrolStations = await petrolStationsCollection.find(
-            { _id: { $in: stationIds } }
-        ).toArray();
-
-        console.log('Petrol stations retrieved:', petrolStations);
-
-        const stationDetailsMap = petrolStations.reduce((acc, station) => {
-            acc[station._id.toString()] = station;
-            return acc;
-        }, {} as Record<string, PetrolStationDetails>);
-
-        const enrichedRecordings = sensorReadings.map(record => ({
-            ...record,
-            petrolStationName: stationDetailsMap[record.stationId.toString()]?.petrolStationName,
-            petrolStationLocation: stationDetailsMap[record.stationId.toString()]?.petrolStationLocation
-        }));
-
-        res.status(200).json({ sensorReadings: enrichedRecordings });
     } catch (error) {
         console.error('Error fetching sensor readings:', error);
         res.status(500).json({ error: 'Internal server error' });

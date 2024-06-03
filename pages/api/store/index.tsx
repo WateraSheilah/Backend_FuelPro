@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Convert readingId from string to ObjectId and check for existence
         const reading = await readingsCollection.findOne({ _id: new ObjectId(readingId as string) }, {
-            projection: { _id: 0, stationId:0, createdAt: 0 }  // Exclude _id and createdAt from the response
+            projection: { _id: 0, stationId:0, createdAt: 0 }
         });
 
         if (!reading) {

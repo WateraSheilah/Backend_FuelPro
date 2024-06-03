@@ -48,6 +48,7 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
             return;
         }
 
+
         const projection = {
             temperature: 1,
             sulfur: 1,
@@ -60,6 +61,7 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
             { _id: { $in: user.fuelRecordings }},
             { projection }
         ).toArray();
+
 
         if (fuelRecordings.length > 0) {
             res.status(200).json({ sensorReadings: fuelRecordings });

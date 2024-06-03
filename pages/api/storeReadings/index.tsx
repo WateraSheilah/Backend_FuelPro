@@ -1,62 +1,78 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { connectToDatabase } from '@/utils/mongodb';
-import {MqttClient} from "mqtt";
-import { addFuelRecording } from '@/utils/addFuelRecording';
-import { connectToMQTTBroker } from '@/utils/connectToMQTTBroker';  // Assuming this is the correct path
+// pages/api/readings/create.ts
 
-interface FuelRecording {
-    username: string;
-    sulfur: number;
+import { connectToDatabase } from "@/utils/mongodb";
+import { NextApiRequest, NextApiResponse } from "next";
+import { ObjectId } from "mongodb";
+import { addFuelRecording } from "@/utils/addFuelRecording";
+import { latestMessage } from "@/utils/connectToMQTTBroker";
+
+interface Reading {
+    stationId: ObjectId;
+    temperature: string;
+    sulfur: string;
     color: string;
-    temperature: number;
+    createdAt: Date;
 }
 
-export default async function receiveFuelRecordings(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method === 'GET') {
-        try {
-            const db = await connectToDatabase();
-            const usersCollection = db.collection('users');
-            const recordingsCollection = db.collection('readings');
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
+    }
 
-            const { username, sulfur, color, temperature } = req.body as FuelRecording;
+    const { username, stationId } = req.body;
 
-            const user = await usersCollection.findOne({ username });
-            if (!user) {
-                return res.status(404).json({ error: 'User not found' });
-            }
+    // Validate the incoming data
+    if (!username || !stationId) {
+        return res.status(400).json({ error: 'Username and station ID must be provided' });
+    }
 
-            if (!username || sulfur === undefined || color === undefined || temperature === undefined) {
-                return res.status(400).json({ error: 'Missing required fields' });
-            }
+    // Validate the latest message data
+    if (!latestMessage.data) {
+        return res.status(400).json({ error: 'No latest message data available' });
+    }
 
-            // Connect to MQTT Broker and subscribe to the topic
-            const mqttClient = connectToMQTTBroker();  // This should return the client
+    const { temperature, sulfur, color } = latestMessage.data;
 
-            mqttClient.on('message', async (topic, message) => {
-                // Assume message is a JSON string that needs parsing
-                const msgData = JSON.parse(message.toString());
+    try {
+        const db = await connectToDatabase();
+        const readingsCollection = db.collection<Reading>('readings');
+        const usersCollection = db.collection('users');
 
-                // Insert data received from MQTT into MongoDB
-                const result = await recordingsCollection.insertOne({
-                    sulfur: msgData.sulfur,
-                    color: msgData.color,
-                    temperature: msgData.temperature,
-
-                    createdAt: new Date()
-                });
-
-                // Update the user's fuelRecordings array with the new recording ObjectId
-                await addFuelRecording(user._id, result.insertedId);
-
-                console.log('Fuel recording saved via MQTT');
-            });
-
-            res.status(200).json({ message: 'Connected to MQTT and listening for messages' });
-        } catch (error) {
-            console.error('Error handling request:', error);
-            res.status(500).json({ error: 'Internal server error' });
+        // Check if the user exists
+        const user = await usersCollection.findOne({ username: username });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
         }
-    } else {
-        res.status(405).json({ error: 'Method Not Allowed' });
+
+        // Convert the stationId from string to ObjectId for comparison
+        const stationObjectId = new ObjectId(stationId);
+
+        // Check if the stationId exists in the user's petrol stations array
+        const stationExists = user.petrolStations && user.petrolStations.some((id: ObjectId) => id.equals(stationObjectId));
+        if (!stationExists) {
+            return res.status(400).json({ error: 'Station ID not associated with this user' });
+        }
+
+        const newReading = {
+            stationId: stationObjectId, // Ensure stationId is stored as ObjectId
+            temperature,
+            sulfur,
+            color,
+            createdAt: new Date() // Capture the current date and time
+        };
+
+        // Insert the new reading into the database
+        const result = await readingsCollection.insertOne(newReading);
+
+        // Update the user's fuelRecordings array with the new recording ObjectId
+        await addFuelRecording(user._id, result.insertedId);
+        if (result.acknowledged) {
+            res.status(200).json({ message: 'Reading successfully added', readingId: result.insertedId });
+        } else {
+            res.status(400).json({ error: 'Failed to add reading' });
+        }
+    } catch (error) {
+        console.error('Error adding reading:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 }

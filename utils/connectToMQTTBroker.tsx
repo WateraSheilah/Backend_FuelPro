@@ -8,7 +8,9 @@ const mqtt_port = 1883;
 
 interface MessageData {
     topic: string;
-    message: string;
+    temperature: string;
+    sulfur: string;
+    color: string;
 }
 
 // Update the latestMessage to support both MessageData or null
@@ -23,36 +25,36 @@ export function connectToMQTTBroker() {
         reconnectPeriod: 1000,
         connectTimeout: 4000
     });
-    try{
-        client.on('connect', () => {
-            console.log('Connected to MQTT Broker');
-            client.subscribe(topic, (err) => {
-                if (!err) {
-                    console.log(`Subscribed to topic '${topic}'`);
-                } else {
-                    console.error('Subscribe error:', err);
-                }
-            });
-        });}catch (e) {
-        console.log( 'There was a problem connecting to the broker error:'+e);
 
-    }
-
-    try {
-
-
-        client.on('message', (topic, message) => {
-            console.log(`Received message on topic: ${topic}`);
-            // Correctly assigning to data
-            latestMessage.data = { topic, message: message.toString() };
+    client.on('connect', () => {
+        console.log('Connected to MQTT Broker');
+        client.subscribe(topic, (err) => {
+            if (!err) {
+                console.log(`Subscribed to topic '${topic}'`);
+            } else {
+                console.error('Subscribe error:', err);
+            }
         });
+    });
 
-        client.on('error', (err) => {
-            console.error('Connection to MQTT broker failed:', err);
-        });}catch (e) {
-        console.log('Couldnt get any data error :'+e);
+    client.on('message', (topic, message) => {
+        console.log(`Received message on topic: ${topic}`);
+        try {
+            const parsedMessage = JSON.parse(message.toString());
+            latestMessage.data = {
+                topic,
+                temperature: parsedMessage.temperature,
+                sulfur: parsedMessage.sulfur,
+                color: parsedMessage.color
+            };
+        } catch (error) {
+            console.error('Failed to parse message:', error);
+        }
+    });
 
-    }
+    client.on('error', (err) => {
+        console.error('Connection to MQTT broker failed:', err);
+    });
 
     return client;
 }
