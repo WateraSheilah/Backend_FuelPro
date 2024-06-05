@@ -18,7 +18,7 @@ type SensorReading = {
 }
 
 export default async function History(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'POST') {
+    if (req.method !== 'GET') {
         res.status(405).json({ error: 'Method Not Allowed' });
         return;
     }
@@ -56,7 +56,6 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
             station: 1,
             location: 1,
             createdAt: 1,
-            stationId: 1,
             _id: 0
         };
         const fuelRecordings = await readingsCollection.find(
