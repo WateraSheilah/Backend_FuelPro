@@ -1,17 +1,25 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { connectToDatabase } from "@/utils/mongodb";
+import { ObjectId } from "mongodb";
+import { addPetrolStation } from "@/utils/addPetrolStation";
 
 interface PetrolStation {
     username: string;
+    station: string;
+    location: string;
     temperature: string;
     color: string;
     sulfur: string;
 }
 
-export default async function PetrolRetrieve(req: NextApiRequest, res: NextApiResponse) {
+export default async function PetrolPost(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === "POST") {
         try {
-            const { username } = req.body;
+            const { username, station, location, temperature, color, sulfur }: PetrolStation = req.body;
+
+            if (!username || !station || !location || !temperature || !color || !sulfur) {
+                return res.status(400).json({ error: 'All fields are required' });
+            }
 
             const db = await connectToDatabase();
             const collection = db.collection('readings');
@@ -22,17 +30,25 @@ export default async function PetrolRetrieve(req: NextApiRequest, res: NextApiRe
                 return res.status(404).json({ error: 'User not found' });
             }
 
-            const petrolStationDetails = await collection.find({ username }).project({
-                temperature: 1, color: 1, sulfur: 1, _id: 0
-            }).toArray();
+            const newReading = {
+                userId: new ObjectId(user._id),
+                station,
+                location,
+                temperature,
+                color,
+                sulfur,
+                createdAt: new Date()
+            };
 
-            if (petrolStationDetails.length === 0) {
-                return res.status(200).json({ message: 'No data available for this user' });
-            }
+            const result = await collection.insertOne(newReading);
 
-            res.status(200).json(petrolStationDetails);
+            await addPetrolStation(user._id, result.insertedId);
+            res.status(201).json({
+                message: 'Petrol station reading added successfully',
+                // readingId: result.insertedId
+            });
         } catch (error) {
-            console.error('Error fetching petrol station readings:', error);
+            console.error('Error adding petrol station reading:', error);
             res.status(500).json({ error: 'Internal server error' });
         }
     } else {

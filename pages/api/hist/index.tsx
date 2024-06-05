@@ -12,10 +12,10 @@ type SensorReading = {
     temperature: number,
     sulfur: number,
     color: string,
-    createdAt: Date,  // Date and time the reading was created
-    petrolStationName: string,  // Name of the petrol station
-    petrolStationLocation: string,  // Location of the petrol station
-};
+    createdAt: Date,  
+    station: string,  
+    location: string, 
+}
 
 export default async function History(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
@@ -53,6 +53,8 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
             temperature: 1,
             sulfur: 1,
             color: 1,
+            station: 1,
+            location: 1,
             createdAt: 1,
             stationId: 1,
             _id: 0
