@@ -4,11 +4,10 @@ import { ObjectId } from 'mongodb';
 
 type User = {
     _id: ObjectId,
-    fuelRecordings: ObjectId[],
-    // Other fields...
+    petrolStations: ObjectId[],
 };
 
-type SensorReading = {
+type History = {
     temperature: number,
     sulfur: number,
     color: string,
@@ -33,17 +32,17 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
     try {
         const db = await connectToDatabase();
         const usersCollection = db.collection<User>('users');
-        const readingsCollection = db.collection<SensorReading>('readings');
+        const readingsCollection = db.collection<History>('readings');
 
-        const user = await usersCollection.findOne({ username }, { projection: { _id: 1, fuelRecordings: 1 } });
+        const user = await usersCollection.findOne({ username }, { projection: { _id: 1, petrolStations: 1 } });
 
         if (!user) {
             res.status(404).json({ error: 'User not found' });
             return;
         }
 
-        // Check if the user has no fuel recordings
-        if (!user.fuelRecordings || user.fuelRecordings.length === 0) {
+        // Check if the user has no recordings
+        if (!user.petrolStations || user.petrolStations.length === 0) {
             res.status(200).json({ message: 'No data available for this user' });
             return;
         }
@@ -58,14 +57,14 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
             createdAt: 1,
             _id: 0
         };
-        const fuelRecordings = await readingsCollection.find(
-            { _id: { $in: user.fuelRecordings }},
+        const petrolStations = await readingsCollection.find(
+            { _id: { $in: user.petrolStations }},
             { projection }
         ).toArray();
 
 
-        if (fuelRecordings.length > 0) {
-            res.status(200).json({ sensorReadings: fuelRecordings });
+        if (petrolStations.length > 0) {
+            res.status(200).json({ sensorReadings: petrolStations });
         } else {
             res.status(200).json({ message: 'No sensor data available for the recorded entries' });
         }

@@ -12,7 +12,7 @@ interface PetrolStation {
     sulfur: string;
 }
 
-export default async function PetrolPost(req: NextApiRequest, res: NextApiResponse) {
+export default async function StoreReadings(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === "POST") {
         try {
             const { username, station, location, temperature, color, sulfur }: PetrolStation = req.body;
