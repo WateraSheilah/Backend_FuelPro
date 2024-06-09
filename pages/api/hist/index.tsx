@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb';
 
 type User = {
     _id: ObjectId,
-    history: ObjectId[],
+    petrolStations: ObjectId[],
 };
 
 type History = {
@@ -25,7 +25,7 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
     const { username } = req.body;
 
     if (!username) {
-        res.status(400).json({ error: 'Username doesnt exist' });
+        res.status(400).json({ error: 'Provide Username' });
         return;
     }
 
