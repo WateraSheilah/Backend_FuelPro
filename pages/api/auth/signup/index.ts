@@ -45,7 +45,7 @@ export default async function Signup(req: NextApiRequest, res: NextApiResponse) 
                 password: hashedPassword,
                 phoneNumber,
                 // userToken,
-                history: []
+                petrolStations: []
 
             });
 
