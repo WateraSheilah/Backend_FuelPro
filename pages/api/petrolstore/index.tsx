@@ -43,7 +43,7 @@ export default async function StoreReadings(req: NextApiRequest, res: NextApiRes
             const result = await collection.insertOne(newReading);
 
             await addPetrolStation(user._id, result.insertedId);
-            res.status(201).json({
+            res.status(200).json({
                 message: 'Petrol station reading added successfully',
                 // readingId: result.insertedId
             });
