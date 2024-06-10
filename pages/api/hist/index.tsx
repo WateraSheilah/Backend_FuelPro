@@ -54,7 +54,7 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
             color: 1,
             station: 1,
             location: 1,
-            createdAt: 1,
+            createdAt: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
             _id: 0
         };
         const petrolStations = await readingsCollection.find(
