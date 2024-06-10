@@ -11,14 +11,24 @@ interface PetrolStation {
     color: Object;
     sulfur: string;
 }
-
+ 
 export default async function StoreReadings(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === "POST") {
         try {
             const { username, station, location, temperature, color, sulfur }: PetrolStation = req.body;
 
-            if (!username || !station || !location || !temperature || !color || !sulfur) {
-                return res.status(400).json({ error: 'All fields are required' });
+            if (!username ) {
+                return res.status(400).json({ error: 'Username is required' });
+            }else if(!station){
+                return res.status(400).json({ error: 'Station is required' });
+            } else if(!location){
+                return res.status(400).json({ error: 'Location is required' });
+            }else if( !temperature ){
+                return res.status(400).json({ error: 'Tempereture is required' });
+            }else if (!sulfur){
+                return res.status(400).json({ error: 'Sulfur is required' });
+            }else if(!color){
+                return res.status(400).json({ error: 'Color is required' });
             }
 
             const db = await connectToDatabase();
