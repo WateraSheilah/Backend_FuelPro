@@ -8,7 +8,7 @@ interface PetrolStation {
     station: string;
     location: string;
     temperature: string;
-    color: Object;
+    color: string;
     sulfur: string;
 }
 
