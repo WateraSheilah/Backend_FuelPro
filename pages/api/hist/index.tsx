@@ -22,7 +22,7 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
         return;
     }
 
-    const { username } = req.body;
+    const { username } = req.query;
 
     if (!username) {
         res.status(400).json({ error: 'Provide Username' });
