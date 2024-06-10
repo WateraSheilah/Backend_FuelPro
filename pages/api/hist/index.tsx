@@ -8,9 +8,11 @@ type User = {
 };
 
 type History = {
-    temperature: number,
-    sulfur: number,
-    color: string,
+    temperature: string,
+    sulfur: string,
+    green: string,
+    red: string,
+    blue: string,
     createdAt: Date,  
     station: string,  
     location: string, 
@@ -51,7 +53,9 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
         const projection = {
             temperature: 1,
             sulfur: 1,
-            color: 1,
+            green: 1,
+            red: 1,
+            blue: 1,
             station: 1,
             location: 1,
             createdAt: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },

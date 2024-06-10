@@ -8,9 +8,9 @@ interface PetrolStation {
     station: string;
     location: string;
     temperature: string;
-    green:number;
-    red:number;
-    blue:number;
+    green:string;
+    red:string;
+    blue:string;
     sulfur: string;
 }
  
