@@ -8,14 +8,16 @@ interface PetrolStation {
     station: string;
     location: string;
     temperature: string;
-    color: Object;
+    green:string;
+    red:string;
+    blue:string;
     sulfur: string;
 }
  
 export default async function StoreReadings(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === "POST") {
         try {
-            const { username, station, location, temperature, color, sulfur }: PetrolStation = req.body;
+            const { username, station, location, temperature, green, red, blue, sulfur }: PetrolStation = req.body;
 
             if (!username ) {
                 return res.status(400).json({ error: 'Username is required' });
@@ -27,7 +29,7 @@ export default async function StoreReadings(req: NextApiRequest, res: NextApiRes
                 return res.status(400).json({ error: 'Tempereture is required' });
             }else if (!sulfur){
                 return res.status(400).json({ error: 'Sulfur is required' });
-            }else if(!color){
+            }else if(!green || !red || !blue){
                 return res.status(400).json({ error: 'Color is required' });
             }
 
@@ -45,7 +47,9 @@ export default async function StoreReadings(req: NextApiRequest, res: NextApiRes
                 station,
                 location,
                 temperature,
-                color,
+                green,
+                red,
+                blue,
                 sulfur,
                 createdAt: new Date()
             };
