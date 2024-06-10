@@ -64,7 +64,7 @@ export default async function History(req: NextApiRequest, res: NextApiResponse)
         const petrolStations = await readingsCollection.find(
             { _id: { $in: user.petrolStations }},
             { projection }
-        ).toArray();
+        ).sort({ createdAt: -1 }).toArray();
 
 
         if (petrolStations.length > 0) {
